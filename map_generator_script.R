@@ -1,4 +1,4 @@
-#Carrando pacotes necessários
+#Carregando pacotes necessários
 
 library("ggspatial")
 library("ggplot2")
