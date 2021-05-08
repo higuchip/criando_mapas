@@ -9,8 +9,18 @@ library(ggsn)
 library(ggmap)
 
 # Obtenção das coordenadas dos pontos
-coord<- read.table('coords.csv', header = T, dec=",",
+coord_points<- read.table('coords.csv', header = T, dec=",",
                    sep=";", row.names = 1)
+coord_inner_background <- coord_points
+
+long_dif <- max(coord_inner_background$long)-min(coord_inner_background$long)
+lat_dif <- max(coord_inner_background$lat)-min(coord_inner_background$lat)
+dif_degree <- c(long_dif, lat_dif)
+coord_inner_background$long[which.min(coord_inner_background$long)]<-
+  coord_inner_background$long[which.min(coord_inner_background$long)]-
+  max(dif_degree)
+
+
 
 #Mapa interno
 
@@ -19,19 +29,22 @@ world <- ne_countries(scale = "medium", returnclass = "sf")
 inner_map<-ggplot(data = world) + 
   geom_sf() + coord_sf(xlim = c(-60, -34), ylim = c(-36.7, -20), #coord_sf para definir o recorte de longitude (xlim) e de latitude (ylim) 
                        expand = FALSE)+ xlab("Long") + ylab("Lat")+
-  geom_rect(data = data.frame(),aes(xmin = min(coord$long), xmax = max(coord$long), #geom_rect para definir a área do zoom
-                                    ymin = min(coord$lat),
-                                    ymax = max(coord$lat)),
+  geom_rect(data = data.frame(),aes(xmin = min(coord_inner_background$long), 
+                                    xmax = max(coord_inner_background$long)+.5, #geom_rect para definir a área do zoom
+                                    ymin = min(coord_inner_background$lat),
+                                    ymax = max(coord_inner_background$lat)+0.5),
             colour = "red", fill = "red", alpha=0.5)+
   annotation_scale(location = "bl", width_hint = .5)
 
 
 #Mapa externo
 
-bc_bbox <- make_bbox(lon = coord$lon, lat = coord$lat, f = 1) #extração do mapa para o zoom
+bc_bbox <- make_bbox(lon = c(coord_inner_background$lon,coord_inner_background$lon+0.5), 
+                     lat = c(coord_inner_background$lat, coord_inner_background$lat+0.5), f = 1) #extração do mapa para o zoom
 bc_big <- get_map(location = bc_bbox)
+
 outter_map<-ggmap(bc_big) + 
-  geom_point(data = coord, mapping = aes(x =long, y = lat), 
+  geom_point(data = coord_points, mapping = aes(x =long, y = lat), 
              color = "red", cex=2, alpha=0.7)+
   scalebar(x.min = bc_bbox["left"]+.1, x.max = bc_bbox["right"]+1,
            y.min = bc_bbox["bottom"]+.1, y.max = bc_bbox["top"],
@@ -70,7 +83,7 @@ jpeg(filename = "mapa.jpg",width = 1800, height = 1800,
      res = 300, family="serif")
 grid.newpage()
 vp_outter <- viewport(width = 1, height = 1, x = 0.5, y = 0.5) 
-vp_inner <- viewport(width = 0.3, height = 0.3, x = 0.37, y = 0.86) 
+vp_inner <- viewport(width = 0.35, height = 0.35, x = 0.3, y = 0.85) 
 print(outter_map + maptheme_outter, vp = vp_outter)
 print(inner_map + maptheme_inner, vp = vp_inner)
 
