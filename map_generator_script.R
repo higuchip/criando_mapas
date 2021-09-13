@@ -46,13 +46,12 @@ bc_big <- get_map(location = bc_bbox)
 outter_map<-ggmap(bc_big) + 
   geom_point(data = coord_points, mapping = aes(x =long, y = lat), 
              color = "red", cex=2, alpha=0.7)+
-  scalebar(x.min = bc_bbox["left"]+.1, x.max = bc_bbox["right"]+1,
-           y.min = bc_bbox["bottom"]+.1, y.max = bc_bbox["top"],
-           dist = 20, dist_unit = "km", st.dist=.05,
-           location = "bottomleft",
+  scalebar(bc_big,
+           dist = 100, dist_unit = "km", st.dist=.05,
+           location = "bottomright",
            st.bottom = FALSE, st.color = "black",
            transform = TRUE, model = "WGS84", st.size = 3)
-
+outter_map
 # Tema do mapa interno
   
 maptheme_inner <- theme(
@@ -77,7 +76,7 @@ maptheme_outter <- theme(
 
 #Geração da Figura
 
-jpeg(filename = "mapa.jpg",width = 1800, height = 1800, 
+jpeg(filename = "mapa_new.jpg",width = 1800, height = 1800, 
      units = "px",
      quality = 100,
      res = 300, family="serif")
